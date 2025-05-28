@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace APBD10.Data;
 
-public partial class s32087 : DbContext
+public partial class s32087Context : DbContext
 {
-    public s32087(DbContextOptions<s32087> options)
+    public s32087Context(DbContextOptions<s32087Context> options)
         : base(options)
     {
     }
