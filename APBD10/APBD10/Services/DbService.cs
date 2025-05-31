@@ -123,7 +123,6 @@ public class DbService(S32087Context data) : IDbService
             CountryList = [],
             ClientList = [],
         };
-        Console.WriteLine("IC"+trip.IdCountries.Count);
         var countries = await data.Countries.Where(c => trip.IdCountries.Select(co => co.IdCountry).Contains(c.IdCountry)).ToListAsync();
         foreach (var country in countries)
         {
@@ -133,7 +132,6 @@ public class DbService(S32087Context data) : IDbService
         var clients = await data.ClientTrips.Where(ct=>ct.IdTrip==trip.IdTrip).Join(
                 data.Clients, ct => ct.IdClient, c => c.IdClient, (ct, c) => c)
             .ToListAsync();
-        //Console.WriteLine(clients.Count);
         foreach (var client in clients)
         {
             tripGetDto.ClientList.Add(ClientToGetDto(client));
