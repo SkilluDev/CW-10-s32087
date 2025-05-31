@@ -42,7 +42,8 @@ public class DbService(S32087Context data) : IDbService
         });
         var length = result.Count;
         var allPages = (int)Math.Ceiling((double)length / pageSize);
-        result = result.Slice((page-1)*pageSize, pageSize);
+        var howMany = pageSize < length - (page - 1) * pageSize ? pageSize : length - (page - 1) * pageSize;
+        result = result.Slice((page-1)*pageSize, howMany);
         return new TripPagedGetDto
         {
             Trips = result,
