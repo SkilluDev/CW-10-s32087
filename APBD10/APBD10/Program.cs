@@ -1,4 +1,5 @@
 using APBD10.Data;
+using APBD10.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace APBD10;
@@ -20,6 +21,8 @@ public class Program
         {
             opt.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
         });
+        
+        builder.Services.AddScoped<IDbService, DbService>();
 
         var app = builder.Build();
 

@@ -3,7 +3,6 @@ using APBD10.Models;
 using APBD10.Services;
 using APBD10.Services;
 using Microsoft.AspNetCore.Mvc;
-using TravelAgency.Models.DTOs;
 
 namespace APBD10.Controllers;
 
@@ -18,7 +17,7 @@ public class TripsController(IDbService dbService):ControllerBase
     }
     
     [HttpPut]
-    [Route("{tripId}/clients")]
+    [Route("{tripId:int}/clients")]
     public async Task<IActionResult> AddClientToTrip([FromRoute] int tripId)
     {
         try

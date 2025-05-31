@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TravelAgency.Models.DTOs;
+namespace APBD10.DTOs;
 
 public class ClientPostDTO
 {
