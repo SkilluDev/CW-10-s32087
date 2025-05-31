@@ -16,7 +16,7 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         
-        builder.Services.AddDbContext<s32087Context>(opt =>
+        builder.Services.AddDbContext<S32087Context>(opt =>
         {
             opt.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
         });
