@@ -1,8 +1,8 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace APBD10.DTOs;
 
-public class ClientPostDTO
+public class ClientTripPostDTO
 {
     [MaxLength(120)]
     public string FirstName { get; set; }
@@ -19,5 +19,10 @@ public class ClientPostDTO
     [MaxLength(120)]
     public string Pesel { get; set; }
     
+    public int IdTrip {get; set;}
     
+    [MaxLength(120)]
+    public string TripName {get; set;}
+    
+    public int? PaymentDate {get; set;}
 }

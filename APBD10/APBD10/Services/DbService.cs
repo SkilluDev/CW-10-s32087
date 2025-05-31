@@ -13,7 +13,7 @@ namespace APBD10.Services;
 public interface IDbService
 {
     Task<TripPagedGetDto> GetTripsDetailsAsync(int page, int pageSize);
-    Task AddClientToTripAsync(int tripId);
+    Task AddClientToTripAsync(int tripId, ClientTripPostDTO clientTrip);
     Task RemoveClientAsync(int clientId);
 }
 
@@ -37,8 +37,8 @@ public class DbService(S32087Context data) : IDbService
         result.Sort((t1, t2) =>
         {
             if (t1.DateFrom < t2.DateFrom) return -1;
-            else if (t1.DateFrom > t2.DateFrom) return 1;
-            else return 0;
+            if (t1.DateFrom > t2.DateFrom) return 1;
+            return 0;
         });
         var length = result.Count;
         var allPages = (int)Math.Ceiling((double)length / pageSize);
@@ -53,19 +53,61 @@ public class DbService(S32087Context data) : IDbService
         };
     }
 
-    public async Task AddClientToTripAsync(int tripId)
+    public async Task AddClientToTripAsync(int tripId, ClientTripPostDTO clientTrip)
     {
-        //TODO jesli klient o takim peselu juz przypisany do wycieczki- blad
-        // czy dana wycieczka nie istnieje albo jest w przeszlosci - blad
-        // paymentdate moze byc null
-        //registeredat to aktualny czas
-        throw new NotImplementedException();
+        var trip = await data.Trips.FindAsync(tripId);
+
+        if (trip == null)
+        {
+            throw new ArgumentException($"Trip with id: {tripId} does not exist");
+        }
+
+        if (trip.DateTo < DateTime.Now)
+        {
+            throw new TripInThePastException($"Trip with id: {tripId} already happened");
+        }
+        
+        var client = await data.Clients.Where(c=>c.Pesel==clientTrip.Pesel).FirstOrDefaultAsync();
+        
+        if (client == null)
+        {
+            throw new ArgumentException($"Client with pesel: {clientTrip.Pesel} does not exist");
+        }
+        
+        var clientsTrip = await data.ClientTrips.Where(ct=>ct.IdClient==client.IdClient && ct.IdTrip == tripId).ToListAsync();
+
+        if (clientsTrip.Any())
+        {
+            throw new ClientInTripException($"Client with pesel: {clientTrip.Pesel} already is assigned to this trip");
+        }
+
+        var newClientTrip = new ClientTrip()
+        {
+            IdClient = client.IdClient,
+            IdTrip = tripId,
+            PaymentDate = clientTrip.PaymentDate,
+            RegisteredAt = Convert.ToInt32(DateTime.Now.ToString("yyyyMMdd"))
+        };
+        
+        await data.ClientTrips.AddAsync(newClientTrip);
+        await data.SaveChangesAsync();
     }
 
     public async Task RemoveClientAsync(int clientId)
     {
-        //TODO check if client exists;
-        //check if client has any trips-> if yes than abort with message;
+        var client  = data.Clients.FirstOrDefault(c=>c.IdClient == clientId);
+
+        if (client == null)
+        {
+            throw new ArgumentException($"Client with id: {clientId} does not exist");
+        }
+        var clientTrips = data.ClientTrips.Where(ct=>ct.IdClient == clientId);
+        if (clientTrips.Any())
+        {
+            throw new ClientHasTripsException($"Client with id: {clientId} has trips assigned");
+        }
+        data.Clients.Remove(client);
+        await data.SaveChangesAsync();
     }
 
     public async Task<TripGetDTO> TripToGetDto(Trip trip)
@@ -82,15 +124,15 @@ public class DbService(S32087Context data) : IDbService
             ClientList = [],
         };
         Console.WriteLine("IC"+trip.IdCountries.Count);
-        var countries = data.Countries.Where(c => trip.IdCountries.Select(co => co.IdCountry).Contains(c.IdCountry));
+        var countries = await data.Countries.Where(c => trip.IdCountries.Select(co => co.IdCountry).Contains(c.IdCountry)).ToListAsync();
         foreach (var country in countries)
         {
             tripGetDto.CountryList.Add(CountryToGetDto(country));
         }
 
-        var clients = data.ClientTrips.Where(ct=>ct.IdTrip==trip.IdTrip).Join(
+        var clients = await data.ClientTrips.Where(ct=>ct.IdTrip==trip.IdTrip).Join(
                 data.Clients, ct => ct.IdClient, c => c.IdClient, (ct, c) => c)
-            .ToList();
+            .ToListAsync();
         //Console.WriteLine(clients.Count);
         foreach (var client in clients)
         {

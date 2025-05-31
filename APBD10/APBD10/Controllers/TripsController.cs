@@ -1,4 +1,5 @@
-﻿using APBD10.Exceptions;
+﻿using APBD10.DTOs;
+using APBD10.Exceptions;
 using APBD10.Models;
 using APBD10.Services;
 using APBD10.Services;
@@ -16,13 +17,13 @@ public class TripsController(IDbService dbService):ControllerBase
         return Ok(await dbService.GetTripsDetailsAsync(page, pageSize));
     }
     
-    [HttpPut]
+    [HttpPost]
     [Route("{tripId:int}/clients")]
-    public async Task<IActionResult> AddClientToTrip([FromRoute] int tripId)
+    public async Task<IActionResult> AddClientToTrip([FromRoute] int tripId, [FromBody] ClientTripPostDTO clientTripPostDto)
     {
         try
         {
-            await dbService.AddClientToTripAsync(tripId);
+            await dbService.AddClientToTripAsync(tripId, clientTripPostDto);
             return NoContent();
         }
         catch (NotFoundException e)
